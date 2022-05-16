@@ -19,12 +19,28 @@ async function run(){
 
         await client.connect();
         const servicesCollection = client.db('doctors_portal_new').collection('services');
+        const bookingCollection = client.db('doctors_portal_new').collection('bookings');
+
+
             app.get('/service', async(req,res)=>{
                 const query ={};
                 const cursor = servicesCollection.find(query);
                 const services = await cursor.toArray();
                 res.send(services)
-            })
+            });
+            // booking items form client
+            app.post('/booking', async(req,res)=>{
+                const booking = req.body;
+                const query = {treatment: booking.treatment, date: booking.date, patiant: booking.patiant}
+                const exist = await bookingCollection.findOne(query);
+                if(exist){
+                   return res.send({success: false, booking:exist})
+                }
+                const result = await bookingCollection.insertOne(booking);
+                res.send({success:true, result});
+            });
+
+             
     }
     finally{
 
