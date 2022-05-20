@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.PORT || 5000;
 require('dotenv').config();
@@ -20,6 +21,7 @@ async function run() {
         await client.connect();
         const servicesCollection = client.db('doctors_portal_new').collection('services');
         const bookingCollection = client.db('doctors_portal_new').collection('bookings');
+        const userCollection = client.db('doctors_portal_new').collection('users');
 
 
         app.get('/service', async (req, res) => {
@@ -47,6 +49,20 @@ async function run() {
             const result = await bookingCollection.insertOne(booking);
             return res.send({ success: true, result });
         });
+
+        // upddate or insert single item
+        app.put('/user/:email', async (req,res)=>{
+            const email = req.params.email;
+            const user = req.body;
+            const filter = {email: email};
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: user,
+            }
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            const token = jwt.sign({email:email}, process.env.ACCESS_TOKEN,{ expiresIn: '1h' })
+            res.send(result, token);
+        })
         
         //not proper way
         app.get('/avaiable', async (req, res) => {
