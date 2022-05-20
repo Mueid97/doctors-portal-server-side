@@ -6,7 +6,7 @@ require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 //middle ware
-app.use(cors());
+app.use(cors())
 app.use(express.json())
 
 
@@ -28,16 +28,24 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services)
         });
+        //myappoinment
+        app.get('/booking', async (req, res)=>{
+            const patiant = req.query.patiant;
+            const query = {patiant: patiant};
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
+        });
+
         // booking items form client
         app.post('/booking', async (req, res) => {
             const booking = req.body;
             const query = { treatment: booking.treatment, date: booking.date, patiant: booking.patiant }
-            const exist = await bookingCollection.findOne(query);
-            if (exist) {
-                return res.send({ success: false, booking: exist })
+            const exists = await bookingCollection.findOne(query);
+            if (exists) {
+                return res.send({ success: false, booking: exists })
             }
             const result = await bookingCollection.insertOne(booking);
-            res.send({ success: true, result });
+            return res.send({ success: true, result });
         });
         
         //not proper way
